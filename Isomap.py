@@ -69,13 +69,37 @@ inf if no edge could be constructed
 
 """
 
-k = 5
+k = 4
+
+NG = np.ones((n,n)) * np.inf
+P = np.ones((n,n))
 
 PG = np.ones((n,k)) * np.inf
 #this keeps track of which points(their indexes 0-100) are the nearest neighbors
 PG_points = np.ones((n,k))
 
 
+for i in range(n):
+    for j in range(n):
+        if i != j :
+            NG[i][j] = np.linalg.norm(Y[:,i]-Y[:,j])
+        P[i][j] = j
+
+
+for i,row in enumerate(NG):
+    idx = row.argsort()
+    NG[i] = NG[i][idx]
+    P[i] = P[i][idx]
+
+
+
+
+PG = NG[:,:k]
+PG_points = P[:,:k]
+
+
+
+"""
 for i in range(n):
     for j in range(n):
         dist = np.linalg.norm(Y[:,i]-Y[:,j])
@@ -86,10 +110,9 @@ for i in range(n):
             PG[i][np.argmax(PG[i])] = dist
             PG_points[i][np.argmax(PG[i])] = j
 
-            
 
-print(PG)
-print(PG_points)
+ """           
+
 """
 
 COMPUTE DISTANCE MATRIX
@@ -122,8 +145,8 @@ for k in range(n):
 for i in range(n):
     for j in range(n):
         if D[i][j] == np.inf:
-            D[i][j] = 1000000
-print(D.shape)
+            D[i][j] = 10000000
+
 
 
 """
@@ -139,7 +162,7 @@ S = -0.5*(D-(n**-1)*np.dot(D,ones)-(n**-2)*np.dot(ones,np.dot(D,ones)))
 
 V, lamda = eigen_decomp(S)
 
-k = 2
+k = 3
 
 #new l_dimensional representation of data
 
@@ -169,20 +192,98 @@ for idx,i in enumerate(colormap):
 import matplotlib.pyplot as plt
 from matplotlib.pyplot import figure
 
-figure(num=None, figsize=(14, 8), dpi=80, facecolor='w', edgecolor='k')
 
-x_points = X[0, :]
-y_points = X[1, :]
+#figure(num=None, figsize=(14, 8), dpi=80, facecolor='w', edgecolor='k')
 
-texts = []
-for idx,i in enumerate(names):
-    x = x_points[idx]
-    y = y_points[idx]
-    plt.plot(x,y,"o",c = colormap[idx])
-    plt.text(x , y *1.05, i, fontsize=8)
-    plt.tight_layout()
+x = [float(i) for i in X[0, :]]
+y= [float(i) for i in X[1, :]]
+z = [float(i) for i in X[2, :]]
+
+
+from mpl_toolkits.mplot3d import Axes3D
+
+from collections import Counter
+
+def create_new_labels(three_dim = False):
+
+    xi = [int(i) for i in x]
+    yi= [int(i) for i in y]
+    zi = [int(i) for i in z]
+
+    if three_dim:
+        #a is the axis we are concerned with, either y or z
+        a = zi
+        p = list(zip(xi,yi,zi))
+    else:
+        a = yi
+        p = list(zip(xi,yi))
+    
     
 
+    distinct_points = list(Counter(p).keys())
+    point_count = list(Counter(p).values())
+
+    a_count = point_count
+
+    a_new = np.zeros(n)
+
+    for idx,i in enumerate(p):
+        
+        count_idx = distinct_points.index(i)
+        total_count_for_i = point_count[count_idx]
+        if total_count_for_i > 1:
+            a_count[count_idx] -= 1
+            a_new[idx] = a[idx] + 200*(a_count[count_idx])
+        else :
+            a_new[idx] = a[idx]
+
+    
+  
+
+    return a_new
 
 
-plt.show()
+def plot_3d(labels = True):
+
+    z_label = create_new_labels(three_dim = True)
+
+    fig = plt.figure(figsize=(15, 8))
+
+
+    ax = fig.add_subplot(111,projection = "3d")
+    ax.scatter(x, y,z, color = colormap)
+
+    if labels : 
+        for i, txt in enumerate(names):
+            ax.text(x[i],y[i],z_label[i], s =   '%s' % (str(txt)), bbox=dict(facecolor=colormap[i],alpha = 0.5),size=7, zorder=1,  
+            color='k') 
+
+
+    plt.savefig("image.png",bbox_inches='tight',dpi=100)
+
+    plt.show()
+
+def plot_2d(labels = True):
+    y_label = create_new_labels()
+
+    fig = plt.figure(figsize=(15, 8))
+
+
+    ax = fig.add_subplot(111)
+    ax.scatter(x, y, color = colormap)
+
+    if labels :
+
+        for i, txt in enumerate(names):
+            ax.text(x[i],y_label[i], s =   '%s' % (str(txt)),size=7, zorder=1,  
+            color='k') 
+
+
+    plt.savefig("image.png",bbox_inches='tight',dpi=100)
+
+    plt.show()
+
+
+plot_2d()
+plot_3d()
+plot_3d(labels = False)

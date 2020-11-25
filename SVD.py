@@ -27,31 +27,42 @@ can produce a rotation.
 
 import numpy as np
 
-A = np.array([[3, 7], [5, 2]])
 
-#finding U,D,V directly with numpy
-U, D, V = np.linalg.svd(A)
+def SVD(A):
 
-"""
+    #finding U,D,V directly with numpy
+    U, D, V = np.linalg.svd(A)
 
-Finding U, D and V of A
 
-U corresponds to the eigenvectors of A*A^T - the left singular values of A
-V corresponds to the eigenvectors of A^T*A - the right singular values of A
-D corresponds to the square roots of the eigenvalues A*A^T or A^T*A which are the same - nonzero singular values of A
 
-"""
+    """
 
-A = np.array([[7, 2], [3, 4], [5, 3]])
+    Finding U, D and V of A
 
-#finding U,D,V through eigenvectors and eigenvalues
+    U corresponds to the eigenvectors of A*A^T - the left singular values of A
+    V corresponds to the eigenvectors of A^T*A - the right singular values of A
+    D corresponds to the square roots of the eigenvalues A*A^T or A^T*A which are the same - nonzero singular values of A
 
-_, eigenvectors = np.linalg.eig(A.dot(A.T))
-U = eigenvectors
-_,eigenvectors = np.linalg.eig(A.T.dot(A))
-V = eigenvectors
-eigenvalues,_ = np.linalg.eig(A.dot(A.T))
-D = np.sqrt(eigenvalues)
+    """
+
+    """
+    A = np.array([[7, 2], [3, 4], [5, 3]])
+
+    #finding U,D,V through eigenvectors and eigenvalues
+
+    _, eigenvectors = np.linalg.eig(A.dot(A.T))
+    U = eigenvectors
+    _,eigenvectors = np.linalg.eig(A.T.dot(A))
+    V = eigenvectors
+    eigenvalues,_ = np.linalg.eig(A.dot(A.T))
+    D = np.sqrt(eigenvalues)
+
+    print(U)
+
+    """
+    
+
+    return U,D,V
 
 
 """
@@ -63,7 +74,14 @@ we use only the 2 first columns of the U matrix, the first columns and rows of t
 the V matrix. Our reconstructed image remains the same dimension as 
 """
 
+"""
+
+A = np.array([[3, 7], [5, 2]])
+
 #number of singular values
 i = 2
 
+U,D,V = SVD(A)
+
 reconstructed = np.matrix(U[:, :i]) * np.diag(D[:i]) * np.matrix(V[:i, :])
+"""

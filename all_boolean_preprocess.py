@@ -14,7 +14,7 @@ for d in data:
     d = d.strip()
     #make list of all attributes
     d_list = d.split(",")
-    #the boolean criteria now becomes true if we have more than 4 legs, otherwise false
+    #the boolean criteria now becomes 0 if we have more than 4 legs, otherwise 1
     d_list[13] = "0" if int(d_list[13]) <= 4 else "1"
     #remove the last element to use for visualization later
     last_elem = d_list.pop()

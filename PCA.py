@@ -155,22 +155,6 @@ X = np.hstack([x, y])
 
 """
 
-Let's center the data around 0. This is because PCA is a regression model
-without an intercept and so the first component will inevitably cross the origin.
-This is already done for us if we do PCA via the covariance matrix, but
-if we do it through SVD we need to make sure that the data is centered. 
-
-"""
-
-def centerData(X):
-    X = X.copy()
-    X -= np.mean(X, axis = 0)
-    return X
-
-X_centered = centerData(X)
-
-"""
-
 We can now start looking for PCs. From previously we know that we are looking for
 the D which maximizes trace(d^T*X^T*X*d) with the constraint d^t*d = 1.
 Remember that we can find the maximum of this trace function by finding the 
@@ -179,7 +163,7 @@ eigenvectors of X^T*X.
 
 """
 
-eigVals, eigVecs = np.linalg.eig(X_centered.T.dot(X_centered))
+eigVals, eigVecs = np.linalg.eig(X.T.dot(X))
 
 """
 
@@ -216,9 +200,9 @@ pretty good representation of the data.
 """
 
 #we need to transpose X because the dimensions are on the columns in this case
-X_new = eigVecs.T.dot(X_centered.T)
+X_new = eigVecs.T.dot(X.T)
 
-plt.plot(eigVecs.T.dot(X_centered.T)[0, :], eigVecs.T.dot(X_centered.T)[1, :], '*')
+plt.plot(eigVecs.T.dot(X_new)[0, :], eigVecs.T.dot(X_new)[1, :], '*')
 plt.xlim(-5, 5)
 plt.ylim(-5, 5)
 plt.show()

@@ -18,13 +18,12 @@ So we have our data. We want to compute a distance
 matrix. It will be nr_points*nr_points in size and
 will illustrate each pair-wise distance in the data.
 
-assigning a random importance/weight to each feature
+
 
 
 """
-
-feature_importance = np.random.rand(16)
-print(feature_importance)
+feature_importance = loadtxt("attribute_weights.txt", comments="#",dtype = str, delimiter=",", unpack=False)
+feature_importance =[float(i)*10 for i in feature_importance]
 
 D = np.zeros((n,n))
 
@@ -45,7 +44,7 @@ S = -0.5*(D-(n**-1)*np.dot(D,ones)-(n**-2)*np.dot(ones,np.dot(D,ones)))
 
 V, lamda = eigen_decomp(S)
 
-k = 2
+k = 3
 
 #new k_dimensional representation of data
 
@@ -76,24 +75,33 @@ for idx,i in enumerate(colormap):
         colormap[idx] = "k"
 import matplotlib.pyplot as plt
 from matplotlib.pyplot import figure
-
-figure(num=None, figsize=(14, 8), dpi=80, facecolor='w', edgecolor='k')
+from collections import Counter
 
 x_points = X[0, :]
 y_points = X[1, :]
+z_points = X[2, :]
+
+
+figure(num=None, figsize=(14, 8), dpi=80, facecolor='w', edgecolor='k')
+
+
 
 texts = []
+
+
+from adjustText import adjust_text
+
 for idx,i in enumerate(names):
     x = x_points[idx]
     y = y_points[idx]
+  
     plt.plot(x,y,"o",c = colormap[idx])
-    plt.text(x , y*1.05 , i, fontsize=10)
-    print( plt.text(x , y*1.05 , i, fontsize=10))
+    texts.append(plt.text(x , y*1.05 , i, fontsize=10))
+ 
     #print(plt.text(x * (1 + 0.01), y * (1 + 0.01) , i, fontsize=20))
     #plt.annotate(i,(x,y),(x, y))
     plt.tight_layout()
     
-
-
+adjust_text(texts, only_move={'points':'y', 'texts':'y'}, arrowprops=dict(arrowstyle="->", color='r', lw=0.5))
 
 plt.show()

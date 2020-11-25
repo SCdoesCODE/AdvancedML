@@ -83,7 +83,7 @@ for idx,i in enumerate(names):
     plt.plot(x,y,"o",c = colormap[idx])
     plt.text(x * (1 + 0.01), y * (1 + 0.01) , i, fontsize=8)
     
-    print(plt.text(x * (1 + 0.01), y * (1 + 0.01) , i, fontsize=8))
+    
 
 
 plt.show()

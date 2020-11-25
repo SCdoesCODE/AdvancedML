@@ -15,23 +15,9 @@ X = []
 for row in lines :
     X.append([int(i) for i in row])
 
-"""
+X = np.array(X)
 
-Let's center the data around 0. This is because PCA is a regression model
-without an intercept and so the first component will inevitably cross the origin.
-This is already done for us if we do PCA via the covariance matrix, but
-if we do it through SVD we need to make sure that the data is centered. 
-
-"""
-
-def centerData(X):
-    X = X.copy()
-    X -= np.mean(X, axis = 0)
-    return X
-
-X_centered = centerData(X)
-
-
+n = X.shape[0]
 
 """
 
@@ -43,7 +29,7 @@ eigenvectors of X^T*X.
 
 """
 
-eigVals, eigVecs = np.linalg.eig(X_centered.T.dot(X_centered))
+eigVals, eigVecs = np.linalg.eig(X.T.dot(X)/(1-n))
 
 """
 
@@ -80,7 +66,7 @@ pretty good representation of the data.
 """
 
 #we need to transpose X because the dimensions are on the columns in this case
-X_new = eigVecs.T.dot(X_centered.T)
+X_new = eigVecs.T.dot(X.T)
 names = loadtxt("names.txt", comments="#",dtype = str, delimiter="\n", unpack=False)
 
 colormap = loadtxt("last_elem.txt", comments="#",dtype = str, delimiter="\n", unpack=False)
@@ -106,8 +92,8 @@ for idx,i in enumerate(colormap):
 from matplotlib.pyplot import figure
 figure(num=None, figsize=(14, 8), dpi=80, facecolor='w', edgecolor='k')
 
-x_points = eigVecs.T.dot(X_centered.T)[0, :]
-y_points = eigVecs.T.dot(X_centered.T)[1, :]
+x_points = eigVecs.T.dot(X.T)[0, :]
+y_points = eigVecs.T.dot(X.T)[1, :]
 
 texts = []
 for idx,i in enumerate(names):
@@ -117,7 +103,4 @@ for idx,i in enumerate(names):
     plt.text(x * (1 + 0.01), y * (1 + 0.01) , i, fontsize=8)
     
 
-
-plt.xlim((-2, 2))
-plt.ylim((-2, 2))
 plt.show()
