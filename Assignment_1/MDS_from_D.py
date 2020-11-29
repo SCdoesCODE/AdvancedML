@@ -18,10 +18,8 @@ So we have our data. We want to compute a distance
 matrix. It will be nr_points*nr_points in size and
 will illustrate each pair-wise distance in the data.
 
-
-
-
 """
+
 feature_importance = loadtxt("attribute_weights.txt", comments="#",dtype = str, delimiter=",", unpack=False)
 feature_importance =[float(i)*10 for i in feature_importance]
 
@@ -102,6 +100,6 @@ for idx,i in enumerate(names):
     #plt.annotate(i,(x,y),(x, y))
     plt.tight_layout()
     
-adjust_text(texts, only_move={'points':'y', 'texts':'y'}, arrowprops=dict(arrowstyle="->", color='r', lw=0.5))
-
+adjust_text(texts, only_move={'points':'y', 'texts':'y'}, arrowprops=dict(arrowstyle="->", color='b', lw=0.5))
+plt.savefig("MDS.eps")
 plt.show()

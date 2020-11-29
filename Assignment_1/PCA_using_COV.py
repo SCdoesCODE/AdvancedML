@@ -29,7 +29,7 @@ eigenvectors of X^T*X.
 
 """
 
-eigVals, eigVecs = np.linalg.eig(X.T.dot(X)/(1-n))
+eigVals, eigVecs = np.linalg.eig(X.T.dot(X)/(n-1))
 
 """
 
@@ -96,11 +96,17 @@ x_points = eigVecs.T.dot(X.T)[0, :]
 y_points = eigVecs.T.dot(X.T)[1, :]
 
 texts = []
+from adjustText import adjust_text
+
 for idx,i in enumerate(names):
     x = x_points[idx]
     y = y_points[idx]
     plt.plot(x,y,"o",c = colormap[idx])
-    plt.text(x * (1 + 0.01), y * (1 + 0.01) , i, fontsize=8)
-    
+    texts.append(plt.text(x * (1 + 0.01), y * (1 + 0.01) , i, fontsize=8))
 
+plt.xlabel('PC1')
+plt.ylabel('PC2')
+    
+adjust_text(texts, only_move={'points':'y', 'texts':'y'}, arrowprops=dict(arrowstyle="->", color='b', lw=0.5))
+plt.savefig("PCA.eps")
 plt.show()

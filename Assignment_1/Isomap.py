@@ -7,7 +7,7 @@ we reconstruct the the low-dimensional coordinates of the data which describe
 where the points lie on the manifold. 
 
 Here Euclidean distance may be a poor measure of distance. Therefore dimensionality
-reduction techniques like PCA cannot accurately describe the unlinear nature of data.
+reduction techniques like PCA cannot accurately describe the nonlinear nature of data.
 E.g. we want to account for the "swirl" in some data in a higher-dimensional space
 even in the lower dimensional space.Instead geodesic distance might be a better at 
 preserving the neighborhour relations in the manifold. 
@@ -69,14 +69,14 @@ inf if no edge could be constructed
 
 """
 
-k = 4
+k_neighbors = 12
 
 NG = np.ones((n,n)) * np.inf
 P = np.ones((n,n))
 
-PG = np.ones((n,k)) * np.inf
+PG = np.ones((n,k_neighbors)) * np.inf
 #this keeps track of which points(their indexes 0-100) are the nearest neighbors
-PG_points = np.ones((n,k))
+PG_points = np.ones((n,k_neighbors))
 
 
 for i in range(n):
@@ -94,8 +94,8 @@ for i,row in enumerate(NG):
 
 
 
-PG = NG[:,:k]
-PG_points = P[:,:k]
+PG = NG[:,:k_neighbors]
+PG_points = P[:,:k_neighbors]
 
 
 
@@ -259,7 +259,7 @@ def plot_3d(labels = True):
             color='k') 
 
 
-    plt.savefig("image.png",bbox_inches='tight',dpi=100)
+    plt.savefig("ISOMAP_3D" + "_" + str(k_neighbors) + ".eps", transparent = "True")
 
     plt.show()
 
@@ -275,15 +275,19 @@ def plot_2d(labels = True):
     if labels :
 
         for i, txt in enumerate(names):
-            ax.text(x[i],y_label[i], s =   '%s' % (str(txt)),size=7, zorder=1,  
+            ax.text(x[i],y_label[i], s ='%s' % (str(txt)), bbox=dict(facecolor=colormap[i],alpha = 0.5),size=7, zorder=1,  
             color='k') 
 
 
-    plt.savefig("image.png",bbox_inches='tight',dpi=100)
+    plt.savefig("ISOMAP_2D" + "_" + str(k_neighbors) + ".eps", transparent = "True")
 
     plt.show()
 
 
-plot_2d()
-plot_3d()
-plot_3d(labels = False)
+#plot_2d()
+
+if(k_neighbors > 10 ) :
+    plot_3d(labels = False)
+
+else:
+    plot_3d()
