@@ -76,6 +76,7 @@ def em_algorithm(seed_val, samples, num_clusters, max_num_iter=100):
 
     # TODO: Implement EM algorithm here.
 
+    """
     # Start: Example Code Segment. Delete this segment completely before you implement the algorithm.
     print("Running EM algorithm...")
 
@@ -100,7 +101,7 @@ def em_algorithm(seed_val, samples, num_clusters, max_num_iter=100):
     topology_list = np.array(topology_list)
     theta_list = np.array(theta_list)
     # End: Example Code Segment
-
+    """
     ###
 
     return loglikelihood, topology_list, theta_list

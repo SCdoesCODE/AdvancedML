@@ -26,6 +26,126 @@ import numpy as np
 from Tree import Tree
 from Tree import Node
 import math
+from sympy.utilities.iterables import multiset_permutations
+import itertools
+
+
+def calc_t(u,i,theta,beta,tree_topology):
+
+    """
+
+    The joint probability of the observations above (all except those below) 
+    the node u when it has the value i. p(O_a, x_u = i) - which is up to a constant
+    the same as p(x_u = i | O_a).
+
+    """
+
+    #the id of u's parent
+    X_p = 0 
+    if not math.isnan(tree_topology[u]):
+        X_p = int(tree_topology[u])
+
+    #the id of u's sibling, which has the same parent as u
+    X_s = 0
+    if tree_topology[u+1] == X_p:
+        X_s = u+1
+    else:
+        X_s = u-1
+
+    
+
+    prob_sum = 0
+
+   
+
+    for j in range(5):
+        for k in range(5):
+            #joint prob of observations above parent of u when the parent has the value j
+            t_p_j = calc_t(X_p,j,theta,beta,tree_topology)
+            #cond prob of x_u = i given x_p(arent of u) = j
+            prob_u_i_p_j = theta[u][j][i]
+            #cond prob of x_s(ibling of u) = k given x_p(arent of u) = j
+            prob_s_k_p_j = theta[X_s][j][k]
+            #cond prob of observations below sibling of u given sibling node has the value k
+            s_s_k = calc_s(X_s,k,theta,beta,tree_topology)
+        
+        prob_sum += t_p_j*prob_u_i_p_j*prob_s_k_p_j*s_s_k
+
+
+    return prob_sum
+   # sum over j,k t(p,j)p(x_u = i|x_p = j)p(x_s = k | x_p = j)s(x_s,k)
+
+
+
+def create_s_table():
+    s_table = np.ones((n_nodes,5))*np.nan
+
+
+
+
+def calc_s(u,i,theta,beta,tree_topology):
+
+    """
+
+    The probability of of the observations below the node u given that the node u has
+    the value i. p(O_b | x_u = i)
+
+    """
+
+    #The two child nodes of u
+
+    X_c1 = 0
+    X_c2 = 0
+
+    if u in tree_topology:
+        X_c1,X_c2 = np.where(tree_topology == u)[0]
+    #else:
+        #return 1
+    
+
+    prob_sum = 0
+    for j in range(5):
+        #prob of observations below first child of u given that u has the value j
+        if not math.isnan(s_table[X_c1][j]):
+            s_c1_j = s_table[X_c1][j]
+        elif not math.isnan(beta[X_c1]):
+            s_c1_j = 1
+        else:
+            s_c1_j = calc_s(X_c1,j, theta, beta, tree_topology)
+            s_table[X_c1][j] = s_c1_j
+        #prob of child 1 having value j given u having value i
+        """
+        if not math.isnan(beta[X_c1]) and beta[X_c1] == -1:
+            p_c1_j_u_i = 1
+        else:
+            """
+        p_c1_j_u_i = theta[X_c1][i][j]
+        #prob of observations below second child of u given that u has the value j
+        if not math.isnan(s_table[X_c2][j]):
+            s_c2_j = s_table[X_c2][j]
+        elif not math.isnan(beta[X_c2]):
+            s_c2_j = 1
+        else:
+            s_c2_j = calc_s(X_c2,j, theta, beta, tree_topology)
+            s_table[X_c2][j] = s_c2_j
+        #prob of child 2 having value j given u having value i
+        """
+        #we check if the child is a leaf and if the current j value is the observed value
+        if not math.isnan(beta[X_c2]) and beta[X_c2] == -1:
+            p_c2_j_u_i = 1
+        else:
+            """
+        p_c2_j_u_i = theta[X_c2][i][j]
+
+        prob_sum += s_c1_j * p_c1_j_u_i * s_c2_j * p_c2_j_u_i
+
+    
+    return prob_sum
+
+
+    #sum over j s(v,j)p(x_v = j| x_u = i) * sum over j s(w,j)p(x_w = j| x_u = i)
+
+
 
 
 def calculate_likelihood(tree_topology, theta, beta):
@@ -78,37 +198,55 @@ def calculate_likelihood(tree_topology, theta, beta):
     problem 2.2 all nodes can have values in [K]. 
     """
 
-    """
-  
-    We know which nodes are leaf-nodes, because they are given by all non-nan 
-    entries in beta
-
-    """
+    
 
     # TODO Add your code here
 
-    leaf_idx = []
+    #https://www.cs.cmu.edu/~ninamf/courses/601sp15/slides/11_GrMod1_2-18-2015.pdf
 
-    for i in range(len(beta)):
-        if not math.isnan(beta[i]):
-            leaf_idx.append(i)
+    n_unobserved = 0
 
-
+    print(tree_topology)
+    for idx,i in enumerate(beta):
+        if math.isnan(i):
+            n_unobserved +=1
+           
     
 
-    O_cond_prob_given_parent = []
+    k_range = np.arange(5)
 
-    for i in leaf_idx:
+    unobserved_perms = list(itertools.combinations(k_range,n_unobserved))
+
+    print(unobserved_perms)
+
+    likelihood = 0
+
+    for idx,perm in enumerate(unobserved_perms):
+        p_0 = theta[0][perm[0]]
+        p_1_0 = theta[1][perm[0]][perm[1]]
+        p_2_0 = theta[2][perm[0]][3]
+        p_3_1 = theta[3][perm[1]][3]
+        p_4_1 = theta[4][perm[1]][1]
+
+        likelihood += p_0*p_1_0*p_2_0*p_3_1*p_4_1
+    
+    print(likelihood)
+    
+    
+
+
+   #starting at the root node and only doing calc_s
+
+    likelihood = 0
+
+    for i in range(5):
+
+        likelihood += calc_s(0,i,theta,beta,tree_topology)
         
-        O_cond_prob_given_parent.append(theta[i][int(beta[i])][int(tree_topology[i])])
-
-    likelihood = np.product(O_cond_prob_given_parent)
     
     print(likelihood)
 
-
-    
-    
+    quit()
 
     """
     # Start: Example Code Segment. Delete this segment completely before you implement the algorithm.
@@ -120,6 +258,8 @@ def calculate_likelihood(tree_topology, theta, beta):
 
     return likelihood
 
+s_table = []
+
 
 def main():
     print("Hello World!")
@@ -127,7 +267,9 @@ def main():
 
     print("\n1. Load tree data from file and print it\n")
 
-    filename = "data/q2_2/q2_2_small_tree.pkl"  # "data/q2_2/q2_2_medium_tree.pkl", "data/q2_2/q2_2_large_tree.pkl"
+    filename = "data/q2_2/q2_2_small_tree.pkl"  
+    #filename = "data/q2_2/q2_2_medium_tree.pkl"
+    #filename = "data/q2_2/q2_2_large_tree.pkl"
     t = Tree()
     t.load_tree(filename)
     t.print()
@@ -138,7 +280,11 @@ def main():
     # Alternatively, if you want, you can load them from corresponding .txt or .npy files
 
     for sample_idx in range(t.num_samples):
+        
         beta = t.filtered_samples[sample_idx]
+        global s_table
+        n_nodes = len(beta)
+        s_table = np.ones((n_nodes,5))*np.nan
         print("\n\tSample: ", sample_idx, "\tBeta: ", beta)
         sample_likelihood = calculate_likelihood(t.get_topology_array(), t.get_theta_array(), beta)
         print("\tLikelihood: ", sample_likelihood)
