@@ -30,56 +30,6 @@ from sympy.utilities.iterables import multiset_permutations
 import itertools
 
 
-def calc_t(u,i,theta,beta,tree_topology):
-
-    """
-
-    The joint probability of the observations above (all except those below) 
-    the node u when it has the value i. p(O_a, x_u = i) - which is up to a constant
-    the same as p(x_u = i | O_a).
-
-    """
-
-    #the id of u's parent
-    X_p = 0 
-    if not math.isnan(tree_topology[u]):
-        X_p = int(tree_topology[u])
-
-    #the id of u's sibling, which has the same parent as u
-    X_s = 0
-    if tree_topology[u+1] == X_p:
-        X_s = u+1
-    else:
-        X_s = u-1
-
-    
-
-    prob_sum = 0
-
-   
-
-    for j in range(5):
-        for k in range(5):
-            #joint prob of observations above parent of u when the parent has the value j
-            t_p_j = calc_t(X_p,j,theta,beta,tree_topology)
-            #cond prob of x_u = i given x_p(arent of u) = j
-            prob_u_i_p_j = theta[u][j][i]
-            #cond prob of x_s(ibling of u) = k given x_p(arent of u) = j
-            prob_s_k_p_j = theta[X_s][j][k]
-            #cond prob of observations below sibling of u given sibling node has the value k
-            s_s_k = calc_s(X_s,k,theta,beta,tree_topology)
-        
-        prob_sum += t_p_j*prob_u_i_p_j*prob_s_k_p_j*s_s_k
-
-
-    return prob_sum
-   # sum over j,k t(p,j)p(x_u = i|x_p = j)p(x_s = k | x_p = j)s(x_s,k)
-
-
-
-def create_s_table():
-    s_table = np.ones((n_nodes,5))*np.nan
-
 
 
 
@@ -93,57 +43,86 @@ def calc_s(u,i,theta,beta,tree_topology):
     """
 
     #The two child nodes of u
-
-    X_c1 = 0
-    X_c2 = 0
-
     if u in tree_topology:
         X_c1,X_c2 = np.where(tree_topology == u)[0]
-    #else:
-        #return 1
+    elif beta[u] == i:
+        return 1
+    else:
+        return 0
     
 
-    prob_sum = 0
+    prob_sum1 = 0
+    prob_sum2 = 0
     for j in range(5):
         #prob of observations below first child of u given that u has the value j
         if not math.isnan(s_table[X_c1][j]):
             s_c1_j = s_table[X_c1][j]
-        elif not math.isnan(beta[X_c1]):
-            s_c1_j = 1
         else:
             s_c1_j = calc_s(X_c1,j, theta, beta, tree_topology)
             s_table[X_c1][j] = s_c1_j
         #prob of child 1 having value j given u having value i
-        """
-        if not math.isnan(beta[X_c1]) and beta[X_c1] == -1:
-            p_c1_j_u_i = 1
-        else:
-            """
         p_c1_j_u_i = theta[X_c1][i][j]
+
         #prob of observations below second child of u given that u has the value j
         if not math.isnan(s_table[X_c2][j]):
             s_c2_j = s_table[X_c2][j]
-        elif not math.isnan(beta[X_c2]):
-            s_c2_j = 1
         else:
             s_c2_j = calc_s(X_c2,j, theta, beta, tree_topology)
             s_table[X_c2][j] = s_c2_j
         #prob of child 2 having value j given u having value i
-        """
-        #we check if the child is a leaf and if the current j value is the observed value
-        if not math.isnan(beta[X_c2]) and beta[X_c2] == -1:
-            p_c2_j_u_i = 1
-        else:
-            """
-        p_c2_j_u_i = theta[X_c2][i][j]
 
-        prob_sum += s_c1_j * p_c1_j_u_i * s_c2_j * p_c2_j_u_i
+        p_c2_j_u_i = theta[X_c2][i][j]
+        
+        prob_sum1 += s_c1_j * p_c1_j_u_i 
+        prob_sum2 += s_c2_j * p_c2_j_u_i
+        
+    
+    return prob_sum1*prob_sum2
+
+
+def brute_force(theta,beta,tree_topology):
+
+
+
+    #https://www.cs.cmu.edu/~ninamf/courses/601sp15/slides/11_GrMod1_2-18-2015.pdf
+
+    n_unobserved = 0
+
+    for idx,i in enumerate(beta):
+        if math.isnan(i):
+            n_unobserved +=1
+
+    k_range = np.arange(5)
+
+    unobserved_perms = list(itertools.product(k_range,repeat = n_unobserved))
+
+    print(unobserved_perms)
+
+    likelihood = 0
+
+    for idx,perm in enumerate(unobserved_perms):
+        p_temp = 1
+        for i in range(len(beta)):
+            #if it has no parents (only root node)
+            if math.isnan(tree_topology[i]):
+                p_temp *= theta[i][perm[0]]
+            #if it has a parents
+            else:
+                par = int(tree_topology[i])
+                #and have not been observed
+                if math.isnan(beta[i]):
+                    p_temp *= theta[i][perm[par]][perm[i]]
+                #and has been observed
+                else:
+                    p_temp *= theta[i][perm[par]][int(beta[i])]
+                    
+                
+        likelihood += p_temp
 
     
-    return prob_sum
+    
+    print("BRUTE FORCE LIKELIHOOD : ",likelihood)
 
-
-    #sum over j s(v,j)p(x_v = j| x_u = i) * sum over j s(w,j)p(x_w = j| x_u = i)
 
 
 
@@ -161,6 +140,8 @@ def calculate_likelihood(tree_topology, theta, beta):
 
 
     """
+
+    
 
     """
 
@@ -202,59 +183,19 @@ def calculate_likelihood(tree_topology, theta, beta):
 
     # TODO Add your code here
 
-    #https://www.cs.cmu.edu/~ninamf/courses/601sp15/slides/11_GrMod1_2-18-2015.pdf
-
-    n_unobserved = 0
-
-    print(tree_topology)
-    for idx,i in enumerate(beta):
-        if math.isnan(i):
-            n_unobserved +=1
-           
     
-
-    k_range = np.arange(5)
-
-    unobserved_perms = list(itertools.combinations(k_range,n_unobserved))
-
-    print(unobserved_perms)
-
-    likelihood = 0
-
-    for idx,perm in enumerate(unobserved_perms):
-        p_0 = theta[0][perm[0]]
-        p_1_0 = theta[1][perm[0]][perm[1]]
-        p_2_0 = theta[2][perm[0]][3]
-        p_3_1 = theta[3][perm[1]][3]
-        p_4_1 = theta[4][perm[1]][1]
-
-        likelihood += p_0*p_1_0*p_2_0*p_3_1*p_4_1
-    
-    print(likelihood)
-    
+    #brute_force(theta,beta,tree_topology)
     
 
 
    #starting at the root node and only doing calc_s
 
     likelihood = 0
-
+    
     for i in range(5):
 
-        likelihood += calc_s(0,i,theta,beta,tree_topology)
-        
-    
-    print(likelihood)
+        likelihood += calc_s(0,i,theta,beta,tree_topology)*theta[0][i]
 
-    quit()
-
-    """
-    # Start: Example Code Segment. Delete this segment completely before you implement the algorithm.
-    print("Calculating the likelihood...")
-    likelihood = np.random.rand()
-    # End: Example Code Segment
-
-    """
 
     return likelihood
 
