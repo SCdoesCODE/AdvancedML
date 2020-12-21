@@ -37,14 +37,14 @@ def calc_s(u,i,theta,beta,tree_topology):
 
     """
 
-    The probability of of the observations below the node u given that the node u has
-    the value i. p(O_b | x_u = i)
+    The probability of of the observations below the node u given that the node u has the value i. p(O_b | x_u = i)
 
     """
 
     #The two child nodes of u
     if u in tree_topology:
         X_c1,X_c2 = np.where(tree_topology == u)[0]
+    #If u is a leaf : return 1 if i is the observed value, otherwise 0
     elif beta[u] == i:
         return 1
     else:
@@ -54,7 +54,7 @@ def calc_s(u,i,theta,beta,tree_topology):
     prob_sum1 = 0
     prob_sum2 = 0
     for j in range(5):
-        #prob of observations below first child of u given that u has the value j
+        #prob of observations below first child of u given that u has the value j, store for efficiency
         if not math.isnan(s_table[X_c1][j]):
             s_c1_j = s_table[X_c1][j]
         else:
@@ -208,9 +208,9 @@ def main():
 
     print("\n1. Load tree data from file and print it\n")
 
-    filename = "data/q2_2/q2_2_small_tree.pkl"  
+    #filename = "data/q2_2/q2_2_small_tree.pkl"  
     #filename = "data/q2_2/q2_2_medium_tree.pkl"
-    #filename = "data/q2_2/q2_2_large_tree.pkl"
+    filename = "data/q2_2/q2_2_large_tree.pkl"
     t = Tree()
     t.load_tree(filename)
     t.print()

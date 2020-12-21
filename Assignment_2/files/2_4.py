@@ -76,6 +76,18 @@ def em_algorithm(seed_val, samples, num_clusters, max_num_iter=100):
 
     # TODO: Implement EM algorithm here.
 
+    N = np.array(samples).shape[0]
+    K = num_clusters
+
+    resp = np.zers((N,K))
+
+    for n in N:
+        for k in K:
+            pi_k
+
+    
+
+
     """
     # Start: Example Code Segment. Delete this segment completely before you implement the algorithm.
     print("Running EM algorithm...")
